@@ -1,24 +1,55 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, View, Image, Text } from "react-native";
+import { StyleSheet, View, Image, Text, Alert } from "react-native";
 import Header from "../components/Header";
 import colors from "../styles/colors";
 import { formatDistance } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 import waterdrop from "../assets/waterdrop.png";
-import { loadPlants, PlantProps } from "../libs/storage";
+import { loadPlants, PlantProps, removePlant } from "../libs/storage";
 import { FlatList } from "react-native-gesture-handler";
 import fonts from "../styles/fonts";
 import PlantCardSecondary from "../components/PlantCardSecondary";
+import Load from "../components/Load";
 
 const MyPlants: React.FC = () => {
-  const [myplants, setMyPlants] = useState<PlantProps[]>();
+  const [myPlants, setMyPlants] = useState<PlantProps[]>([]);
   const [loading, setLoading] = useState(true);
   const [nextPlantWaterTip, setNextPlantWaterTip] = useState<string>();
+
+  function handleRemove(plant: PlantProps) {
+    Alert.alert("Remover", `Deseja remover a ${plant.name}?`, [
+      {
+        text: "Não 🙏",
+        style: "cancel",
+      },
+      {
+        text: "Sim 😢",
+        style: "default",
+        onPress: async () => {
+          try {
+            await removePlant(plant.id);
+
+            setMyPlants((oldPlants) =>
+              oldPlants.filter((oldPlant) => oldPlant.id !== plant.id)
+            );
+          } catch (error) {
+            Alert.alert("Não foi possível remover! 😢");
+          }
+        },
+      },
+    ]);
+  }
 
   useEffect(() => {
     async function loadStorageData() {
       const plantsStoraged = await loadPlants();
+
+      if (!plantsStoraged.length) {
+        setLoading(false);
+        return;
+      }
+
       const nextTime = formatDistance(
         new Date(plantsStoraged[0].dateTimeNotification).getTime(),
         new Date().getTime(),
@@ -35,6 +66,10 @@ const MyPlants: React.FC = () => {
     loadStorageData();
   }, []);
 
+  if (loading) {
+    return <Load />;
+  }
+
   return (
     <View style={styles.container}>
       <Header />
@@ -47,9 +82,16 @@ const MyPlants: React.FC = () => {
       <View style={styles.plants}>
         <Text style={styles.plantsTitle}>Próximas regadas</Text>
         <FlatList
-          data={myplants}
-          keyExtractor={(item) => String(item.id)}
-          renderItem={({ item }) => <PlantCardSecondary data={item} />}
+          data={myPlants}
+          keyExtractor={(item: PlantProps) => String(item.id)}
+          renderItem={({ item }: { item: PlantProps }) => (
+            <PlantCardSecondary
+              data={item}
+              handleRemove={() => {
+                handleRemove(item);
+              }}
+            />
+          )}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 20 }}
         />
