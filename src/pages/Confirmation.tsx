@@ -1,10 +1,17 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { SafeAreaView, StyleSheet, Text, View } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import Button from "../components/Button";
 import colors from "../styles/colors";
 import fonts from "../styles/fonts";
 
 const Confirmation: React.FC = () => {
+  const navigation = useNavigation();
+
+  const handleConfirm = useCallback(() => {
+    navigation.navigate("PlantSelect");
+  }, []);
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
@@ -16,7 +23,7 @@ const Confirmation: React.FC = () => {
         </Text>
 
         <View style={styles.footer}>
-          <Button text="Começar" />
+          <Button text="Começar" onPress={handleConfirm} />
         </View>
       </View>
     </SafeAreaView>
