@@ -1,3 +1,4 @@
+import { useNavigation } from "@react-navigation/core";
 import { loadAsync } from "expo-font";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -12,6 +13,7 @@ import EnvironmentButton from "../components/EnvironmentButton";
 import Header from "../components/Header";
 import Load from "../components/Load";
 import PlantCardPrimary from "../components/PlantCardPrimary";
+import { PlantProps } from "../libs/storage";
 import api from "../services/api";
 import colors from "../styles/colors";
 import fonts from "../styles/fonts";
@@ -19,19 +21,6 @@ import fonts from "../styles/fonts";
 interface EnvironmentProps {
   key: string;
   title: string;
-}
-
-interface PlantProps {
-  id: number;
-  name: string;
-  about: string;
-  water_tips: string;
-  photo: string;
-  environments: string[];
-  frequency: {
-    times: number;
-    repeat_every: string;
-  };
 }
 
 const PlantSelect: React.FC = () => {
@@ -43,7 +32,8 @@ const PlantSelect: React.FC = () => {
 
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [loadedAll, setLoadedAll] = useState(false);
+
+  const navigation = useNavigation();
 
   const handleSelectEnvironment = useCallback((environment: string) => {
     setSelectedEnvironment(environment);
@@ -62,15 +52,10 @@ const PlantSelect: React.FC = () => {
 
   async function fetchPlants() {
     const { data } = await api.get(
-      `plants?_sort=name&_order=asc&_page=${page}&_limit=6`
+      `plants?_sort=name&_order=asc&_page=${page}&_limit=8`
     );
 
     if (!data) {
-      setLoadedAll(true);
-      return;
-    }
-
-    if (loadedAll) {
       return;
     }
 
@@ -88,8 +73,7 @@ const PlantSelect: React.FC = () => {
     setLoading(false);
     setLoadingMore(false);
   }
-
-  const handleFetchMore = useCallback((distance: number) => {
+  function handleFetchMore(distance: number) {
     if (distance < 1) {
       return;
     }
@@ -97,7 +81,11 @@ const PlantSelect: React.FC = () => {
     setLoadingMore(true);
     setPage((currentPage) => currentPage + 1);
     fetchPlants();
-  }, []);
+  }
+
+  function handlePlantSelect(plant: PlantProps) {
+    navigation.navigate("PlantSave", { plant });
+  }
 
   useEffect(() => {
     async function fetchEnvironments() {
@@ -134,6 +122,7 @@ const PlantSelect: React.FC = () => {
 
       <View>
         <FlatList
+          keyExtractor={(item) => item.key}
           data={environments}
           renderItem={({ item }) => (
             <EnvironmentButton
@@ -150,8 +139,16 @@ const PlantSelect: React.FC = () => {
 
       <View style={styles.plants}>
         <FlatList
+          keyExtractor={(item) => String(item.id)}
           data={filteredPlants}
-          renderItem={({ item }) => <PlantCardPrimary data={item} />}
+          renderItem={({ item }) => (
+            <PlantCardPrimary
+              data={item}
+              onPress={() => {
+                handlePlantSelect(item);
+              }}
+            />
+          )}
           showsVerticalScrollIndicator={false}
           numColumns={2}
           onEndReachedThreshold={0.1}

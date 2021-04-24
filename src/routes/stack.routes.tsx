@@ -6,11 +6,12 @@ import UserIdentification from "../pages/UserIdentification";
 import Confirmation from "../pages/Confirmation";
 
 import colors from "../styles/colors";
-import PlantSelect from "../pages/PlantSelect";
+import PlantSave from "../pages/PlantSave";
+import TabRoutes from "./tab.routes";
 
 const stackRoutes = createStackNavigator();
 
-const AppRoutes: React.FC = () => {
+const StackRoutes: React.FC = () => {
   return (
     <stackRoutes.Navigator
       headerMode="none"
@@ -24,20 +25,33 @@ const AppRoutes: React.FC = () => {
         name="Welcome"
         component={Welcome}
       ></stackRoutes.Screen>
+
       <stackRoutes.Screen
         name="UserIdentification"
         component={UserIdentification}
       ></stackRoutes.Screen>
+
       <stackRoutes.Screen
         name="Confirmation"
         component={Confirmation}
       ></stackRoutes.Screen>
+
       <stackRoutes.Screen
         name="PlantSelect"
-        component={PlantSelect}
+        component={TabRoutes}
+      ></stackRoutes.Screen>
+
+      <stackRoutes.Screen
+        name="PlantSave"
+        component={PlantSave}
+      ></stackRoutes.Screen>
+
+      <stackRoutes.Screen
+        name="MyPlants"
+        component={TabRoutes}
       ></stackRoutes.Screen>
     </stackRoutes.Navigator>
   );
 };
 
-export default AppRoutes;
+export default StackRoutes;
